@@ -10598,7 +10598,8 @@
           "minLength": 1
         },
         "includeImage": {
-          "description": "Return inline PNG as well as saved path (default true).",
+          "description": "Include a base64-encoded MCP image block (default false; geometry and saved PNG path are always returned).",
+          "default": false,
           "type": "boolean"
         },
         "platform": {

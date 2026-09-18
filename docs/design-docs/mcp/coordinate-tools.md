@@ -1,10 +1,25 @@
 # Coordinate interaction tools (draft)
 
-`tapAt`, `snapshotOf`, and `hitTest` provide a visual escape hatch when a control
-has no useful accessibility selector. Prefer semantic tools such as `tapOn`
-when an appropriate selector exists. A custom canvas can expose just its outer
-container: an agent can inspect that container and interact with a location
-inside it without requiring each drawn control to be an accessibility node.
+`tapAt`, `snapshotOf`, and `hitTest` provide a coordinate fallback while an app's
+automation coverage is incomplete. The immediate motivation is a system using
+AutoMobile to exercise Slack: most views lack accessibility identifiers, and
+many composite views set `isAccessibilityElement = true` without overriding
+`automationElements` to re-expose their constituents. Ordinary visible controls
+can therefore be unavailable to automation, blocking interaction throughout the
+app.
+
+Retrofitting identifiers and exposing the full view structure is a substantial
+undertaking. These tools let automation proceed in the meantime: when an
+element cannot be identified, inspect an exposed ancestor and interact with
+coordinates inside it, or use screen coordinates. AutoMobile-generated IDs help
+with views already exposed in the hierarchy; they cannot recover hidden
+descendants. Prefer semantic tools such as `tapOn` whenever a useful selector
+exists.
+
+Interacting with inherently opaque components is a strong secondary motivation.
+A custom canvas, embedded renderer, or similar view may expose only its outer
+container even with otherwise complete automation support. The same
+snapshot/preview/tap workflow supports its visual affordances.
 
 ## Shared coordinates
 
@@ -57,8 +72,10 @@ protections; they do not require a developer-authored accessibility ID.
 { "elementId": "canvas" }
 ```
 
-The response has JSON in both MCP `structuredContent` and a text content block,
-plus an inline PNG image by default. `includeImage: false` omits the image block.
+By default, the response contains compact JSON metadata in both MCP
+`structuredContent` and a text content block. The PNG is saved to a file; image
+bytes are excluded from the response to keep the default context cost small.
+`includeImage: true` explicitly adds a base64-encoded MCP image content block.
 The JSON includes:
 
 - `element`: ID, text/class when available, native screen bounds, width/height,
@@ -69,10 +86,11 @@ The JSON includes:
   the element was clipped to the screen.
 - `relativeTo: {snapshotId}`: ready to copy into either coordinate tool.
 
-The path is on the MCP server's filesystem. Remote clients should use the
-inline image. Files use the existing secure screenshot writer and screenshot
-cache cleanup policy. The crop is named separately from full-screen captures,
-so it cannot become a device's latest full-screen screenshot.
+The path is on the MCP server's filesystem. Remote clients can request
+`includeImage: true` when they need the inline image. Files use the existing
+secure screenshot writer and screenshot cache cleanup policy. The crop is named
+separately from full-screen captures, so it cannot become a device's latest
+full-screen screenshot.
 
 Screenshots are cropped without resizing. A partial element is clipped to the
 screen; fractional bounds are rounded outward to raster edges. Snapshot
@@ -88,9 +106,12 @@ scale. `snapshotOf` also rechecks geometry after capturing the image.
 
 ## The three-tool loop
 
-1. Obtain a parent/container ID from `observe` (use its full projection when
-   the actionable skeleton omits the container).
-2. Call `snapshotOf` and analyze its smaller image.
+1. When a target lacks a usable selector, obtain an exposed ancestor's ID from
+   `observe` (use its full projection when the actionable skeleton omits the
+   container). Screen coordinates remain available when no suitable ancestor
+   is exposed.
+2. Call `snapshotOf` on that ancestor and analyze the saved crop when needed;
+   remote clients can explicitly request `includeImage: true`.
 3. Pass the returned snapshot reference and crop-image coordinates to `hitTest`.
 4. Inspect the resolved screen point and candidates, then pass the same
    coordinate arguments to `tapAt`.
@@ -154,9 +175,10 @@ semantic activation is desired.
   Recorded automation should use screen/element coordinates or recapture first.
 - This draft supports a single tap. Double taps, long presses, text selectors,
   arbitrary rectangular crops, and RTL aliases can be discussed separately.
-- Live Android/iOS acceptance should cover a custom canvas, nested containers,
-  overlapping windows, rotation, partial clipping, and Retina scaling before
-  promoting the proposal out of draft.
+- Live Android/iOS acceptance should first cover ordinary app controls with
+  missing identifiers or hidden descendants, then custom canvases, nested
+  containers, overlapping windows, rotation, partial clipping, and Retina
+  scaling before promoting the proposal out of draft.
 
 The implementation uses the Node standard library and existing element parser,
 finder, TTL cache, image backend, screenshot writer, gesture clients, and

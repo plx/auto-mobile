@@ -60,8 +60,10 @@ export const snapshotOfSchema = addDeviceTargetingToSchema(
         .describe("Unique resource ID or stable element ID from observe."),
       includeImage: z
         .boolean()
-        .optional()
-        .describe("Return inline PNG as well as saved path (default true)."),
+        .default(false)
+        .describe(
+          "Include a base64-encoded MCP image block (default false; geometry and saved PNG path are always returned).",
+        ),
       platform: platformSchema.optional(),
     })
     .strict(),
@@ -189,15 +191,15 @@ export function registerCoordinateTools(
         ...response,
         content: [
           ...response.content,
-          ...(args.includeImage === false
-            ? []
-            : [
+          ...(args.includeImage === true
+            ? [
                 {
                   type: "image" as const,
                   data: result.png.toString("base64"),
                   mimeType: "image/png",
                 },
-              ]),
+              ]
+            : []),
         ],
       };
     },

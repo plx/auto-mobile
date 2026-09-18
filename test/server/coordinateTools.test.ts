@@ -38,8 +38,9 @@ describe("coordinate tool schemas", () => {
     }
   });
 
-  test("snapshotOf requires an element and accepts inline-image opt-out", () => {
-    expect(snapshotOfSchema.safeParse({ elementId: "canvas", includeImage: false }).success).toBe(
+  test("snapshotOf requires an element and defaults inline images off", () => {
+    expect(snapshotOfSchema.parse({ elementId: "canvas" }).includeImage).toBe(false);
+    expect(snapshotOfSchema.safeParse({ elementId: "canvas", includeImage: true }).success).toBe(
       true,
     );
     expect(snapshotOfSchema.safeParse({ elementId: "" }).success).toBe(false);
@@ -167,13 +168,13 @@ describe("coordinate tool registration", () => {
     });
   }
 
-  test.each([true, false])(
+  test.each([undefined, false, true])(
     "snapshotOf routes JSON, path, and optional inline image (%s)",
     async (includeImage) => {
       setupSnapshot();
       const result = await ToolRegistry.getTool("snapshotOf")!.deviceAwareHandler!(device, {
         elementId: "canvas",
-        includeImage,
+        ...(includeImage === undefined ? {} : { includeImage }),
       });
       expect(getStructuredField(result, "snapshot")).toMatchObject({
         path: "/captures/element-id-1.png",
