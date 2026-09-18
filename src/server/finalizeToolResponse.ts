@@ -110,6 +110,7 @@ const OBSERVE_WAIT_METADATA_KEYS = [
  */
 export const SKELETON_DEFAULT_ACTION_TOOLS: ReadonlySet<string> = new Set([
   "tapOn",
+  "tapAt",
   "inputText",
   "sendKeys",
   "launchApp",

@@ -26,3 +26,6 @@ The main user-facing capabilities are:
 Start with [installation](../index.md#install), then see the
 [interaction loop](mcp/interaction-loop.md) for how AutoMobile observes,
 acts, and returns updated state.
+
+The [coordinate tools proposal](mcp/coordinate-tools.md) describes the draft
+`tapAt`, `snapshotOf`, and `hitTest` workflow for views without useful selectors.

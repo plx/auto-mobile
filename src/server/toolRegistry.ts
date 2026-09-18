@@ -950,6 +950,7 @@ export class DefaultAuditRunner implements AuditRunner {
 // membership checks without re-allocating the list on every tool call.
 export const NAVIGATION_RELEVANT_TOOLS = new Set([
   "tapOn",
+  "tapAt",
   "swipeOn",
   "pinchOn",
   "dragAndDrop",

@@ -16,12 +16,21 @@ describe("NAVIGATION_RELEVANT_TOOLS", () => {
       "pressButton",
       "sendKeys",
       "swipeOn",
+      "tapAt",
       "tapOn",
     ]);
   });
 
   test("excludes app-lifecycle and observation tools", () => {
-    for (const tool of ["launchApp", "terminateApp", "homeScreen", "observe", "installApp"]) {
+    for (const tool of [
+      "launchApp",
+      "terminateApp",
+      "homeScreen",
+      "observe",
+      "installApp",
+      "hitTest",
+      "snapshotOf",
+    ]) {
       expect(NAVIGATION_RELEVANT_TOOLS.has(tool)).toBe(false);
     }
   });

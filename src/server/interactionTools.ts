@@ -85,6 +85,7 @@ import {
   elementSelectionStrategySchema,
 } from "./elementSelectorSchemas";
 import { tapOnResultSchema } from "./toolOutputSchemas";
+import { registerCoordinateTools } from "./coordinateTools";
 
 // Import from extracted modules
 import type {
@@ -1937,6 +1938,7 @@ function formatTrayListMessage(
 // ============================================================================
 
 export function registerInteractionTools() {
+  registerCoordinateTools();
   // tapOn, tapAny, dragAndDrop, clearText, selectAllText, pressButton,
   // imeAction, and swipeOn handlers are defined at module scope (each with an
   // injectable factory) so a unit test can exercise the registered handler
